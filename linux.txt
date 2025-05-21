@@ -1,0 +1,786 @@
+Automating Programs
+1. Run Levels
+• Explanation: Run levels are modes of operation in Unix-based systems that define what
+services and processes are running. They range from 0 to 6, where:
+• Run Level 0: Shutdown state.
+• Run Level 1: Single-user mode (maintenance).
+• Run Level 3: Multi-user mode with networking (without GUI).
+• Run Level 5: Multi-user mode with GUI.
+• Run Level 6: Reboot.
+• Installation: Run levels are part of the default Linux system.
+• Configuration:
+• To check the current run level:
+who -r
+• Change the run level (for example, switch to run level 3):
+sudo init 3
+
+2. /etc/RC.d Files
+• Explanation: These directories contain scripts that start and stop services based on the run
+level. For example, /etc/rc3.d/ is used for services started in run level 3.
+• Configuration:
+• To enable a service at a specific run level, create a symbolic link for that service in
+the respective /etc/rcX.d/ directory.
+• Example: Enable Apache service in run level 3:
+sudo ln -s /etc/init.d/apache2 /etc/rc3.d/S99apache2
+
+3. Customization of Run Levels
+• Explanation: You can control which services run by default at different run levels.
+• Configuration:
+• Modify the symbolic links in /etc/rc.d/ for services. Use the chkconfig tool
+for easier management:
+sudo chkconfig --level 3 apache2 on
+
+4. cron and anacron
+• Explanation: cron is used for scheduling recurring tasks, while anacron ensures that
+tasks missed during system downtime are executed once the system is back up.
+• Installation:
+• cron is usually pre-installed, but you can install it if needed:
+sudo apt install cron
+• Configuration:
+• To schedule a cron job, use:
+crontab -e
+• Example to schedule a backup every day at 2 AM:
+0 2 * * * /usr/bin/backup.sh
+
+5. at and batch
+• Explanation: at schedules one-time tasks, while batch schedules tasks to run when the
+system load permits.
+• Installation:
+sudo apt install at
+• Configuration:
+• To schedule a task with at:
+echo "sh /home/user/task.sh" | at 17:00
+• To list scheduled tasks:
+atq
+
+----------------------------------------------------------------------------------
+Login Options
+----------------------------------------------------------------------------------
+1. Console Login
+• Explanation: A local login method where users access the system directly via the console.
+• Configuration:
+• Console login is enabled by default. You can configure access via
+/etc/securetty to restrict or allow users to log in directly from specific
+consoles.
+
+2. Controlling Console Login
+• Explanation: Modify the access rules for users logging in through the console.
+• Configuration:
+• Edit /etc/securetty to define which terminals allow root login:
+tty1
+tty2
+• Restrict root login by commenting out the relevant terminals.
+
+3. Virtual Consoles
+• Explanation: Linux provides multiple virtual consoles, allowing users to switch between
+terminal sessions.
+• Configuration:
+• Press Ctrl + Alt + F1 to Ctrl + Alt + F6 to switch between virtual
+consoles.
+• Configure virtual console settings in /etc/inittab or systemd's
+/etc/systemd/system/getty.target.wants/.
+
+4. Serial Login
+• Explanation: Used for logging in through a serial port, often for server or network device
+management.
+• Configuration:
+• Configure a serial login service using systemd:
+sudo systemctl start serial-getty@ttyS0.service
+
+5. Remote Login
+• Explanation: Remote login allows access via network protocols like SSH.
+• Configuration:
+• Install and configure SSH:
+sudo apt install openssh-server
+sudo systemctl enable ssh
+sudo systemctl start ssh
+• Remote login using:
+ssh user@remote-server-ip
+
+6. SSH Login
+• Explanation: Secure Shell (SSH) is a secure protocol used for logging in remotely.
+• Configuration:
+• To enable passwordless SSH login:
+1. Copy the public key to the remote server:
+ssh-copy-id user@remote-server-ip
+
+-----------------------------------------------------------------------------------
+Building a Custom Linux Kernel
+-----------------------------------------------------------------------------------
+1. Kernel Versions:
+• Description: Linux kernels are updated frequently. You can view the installed
+version using:
+uname -r
+
+2. Kernel Source Files:
+• Description: The kernel source code is required to build a custom kernel.
+• Example:
+• Download the source files:
+sudo apt-get install linux-source
+
+3. Kernel Patch Files:
+• Description: Patches are used to apply updates or modifications to the kernel.
+• Example:
+• Apply a patch:
+patch -p1 < fix.patch
+
+4. Kernel Configuration:
+• Description: Customize kernel features.
+• Example:
+• To configure a kernel before building:
+make menuconfig
+
+5. Kernel Building:
+• Description: Compiling the kernel after configuration.
+• Example:
+make
+make modules_install
+make install
+
+6. Testing a New Kernel:
+• Description: Boot into the newly built kernel and verify functionality.
+• Example:
+• After installation, reboot the system:
+sudo reboot
+• Select the new kernel from the bootloader (GRUB).
+
+-------------------------------------------------------------------------------
+The GNU/Linux Filesystem
+------------------------------------------------------------------------------
+1. Partition Types
+• Explanation: Partitions divide your disk into logical sections. Types include primary,
+logical, and extended partitions.
+• Example:
+• View disk partitions:
+sudo fdisk -l
+
+2. Filesystem Types
+• Explanation: Common file systems in Linux include ext4, xfs, btrfs.
+• Example:
+• Format a partition as ext4:
+sudo mkfs.ext4 /dev/sda1
+
+3. Mounting
+• Explanation: Mounting attaches a partition to the Linux directory structure.
+• Configuration:
+• To mount a partition:
+sudo mount /dev/sda1 /mnt
+
+4. Automount
+• Explanation: Automatically mount filesystems at boot using the /etc/fstab file.
+• Configuration:
+• Edit /etc/fstab to automount:
+/dev/sda1 /mnt ext4 defaults 0 0
+
+5. File Types
+• Explanation: Linux distinguishes between different file types, such as regular files,
+directories, and symbolic links.
+• Example:
+• Check a file type:
+file filename.txt
+
+6. File Security
+• Explanation: File permissions (read, write, execute) and ownership control access.
+• Example:
+• Change file permissions:
+chmod 755 filename
+• Change file ownership:
+chown user:group filename
+
+-------------------------------------------------------------------------------
+Key Filesystem Locations
+-------------------------------------------------------------------------------
+1. Boot Files:
+• Description: Essential files used to boot the system, typically located in /boot.
+• Example:
+• List the contents of the boot directory:
+ls /boot
+• It will include files like vmlinuz (kernel image), initrd.img, and
+GRUB configuration.
+User Files, Administrator Files, Configuration Files, and Log Files
+1. User Files:
+• View User Home Directory:
+ls /home/<username>
+
+2. Administrator Files:
+• View Root's Home Directory:
+ls /root
+
+3. Configuration Files:
+• View Network Configuration Files (e.g., for networking):
+cat /etc/network/interfaces # (for Debian/Ubuntu)
+cat /etc/sysconfig/network-scripts/ifcfg-eth0 # (for RHEL/CentOS)
+
+4. Log Files:
+• View System Logs:
+tail -f /var/log/syslog # (Debian/Ubuntu)
+tail -f /var/log/messages # (RHEL/CentOS)
+
+-------------------------------------------------------------------------------
+/proc Pseudo Filesystem
+------------------------------------------------------------------------------
+1. Process Info:
+• Check a Running Process:
+ps aux | grep <process_name>
+cat /proc/<pid>/status
+
+2. Kernel Config Info:
+• View Kernel Parameters:
+cat /proc/sys/kernel/hostname
+
+3. Hardware Info:
+• View CPU Information:
+cat /proc/cpuinfo
+• View Memory Information:
+cat /proc/meminfo
+
+4. Changing /proc Info:
+• Enable IP Forwarding:
+echo 1 > /proc/sys/net/ipv4/ip_forward
+• The command:
+echo 1 > /proc/sys/net/ipv4/ip_forward
+enables IP forwarding on a Linux system. Here's a breakdown:
+• Purpose: Enables packet forwarding between network interfaces, allowing the system to act
+as a router.
+• echo 1: The 1 indicates enabling (while 0 would disable).
+• /proc/sys/net/ipv4/ip_forward: A virtual file controlling IPv4 packet
+forwarding in Linux.
+To make this change permanent, add the following line to /etc/sysctl.conf:
+net.ipv4.ip_forward = 1
+Then apply it with:
+sysctl -p
+
+5. View System Info:
+• Uptime and Load Average:
+cat /proc/uptime
+cat /proc/loadavg
+
+------------------------------------------------------------------------------
+BASH (Bourne Again Shell)
+------------------------------------------------------------------------------
+1. Basic Commands:
+• Command (List Files):
+ls -la
+• Explanation: ls lists files in the current directory. The -la option lists all files
+(including hidden ones) and provides detailed information like permissions,
+ownership, and size.
+• Command (Copy Files):
+cp file1 file2
+• Explanation: The cp command copies file1 to file2. If the target file exists, it
+will be overwritten without warning (unless using options like -i for interactive
+mode).
+• Command (Move/Rename Files):
+mv file1 new_location
+• Explanation: The mv command moves or renames files. You can use it to move a
+file to another directory or rename it within the same directory.
+
+2. History:
+• Command:
+history
+• Explanation: The history command shows the list of previously executed
+commands. This is useful for recalling and reusing commands.
+
+3. Manual Pages:
+• Command:
+man ls
+• Explanation: The man command opens the manual page for a specific command, in
+this case ls. It provides detailed documentation about how to use the command and
+its options.
+
+4. vi Editor:
+• Command:
+vi file.txt
+• Explanation: Opens the file file.txt in the vi editor, a popular text editor in
+Unix/Linux. You can modify and save files using commands in vi.
+
+5. Shell Scripts:
+• Command:
+chmod +x script.sh
+./script.sh
+• Explanation:
+• chmod +x makes the script executable.
+• ./script.sh runs the script in the current directory.
+
+--------------------------------------------------------------------------------
+User Management
+---------------------------------------------------------------------------------
+1. Add a New User:
+• Command:
+sudo useradd -m <username>
+• Explanation: The useradd command adds a new user, and the -m flag creates a home directory for the user.
+
+2. Set Password for User:
+• Command:
+sudo passwd <username>
+• Explanation: passwd sets or changes the password for a user.
+
+3. Add a New Group:
+• Command:
+sudo groupadd <groupname>
+• Explanation: Creates a new group with the specified name.
+
+4. Add User to a Group:
+• Command:
+sudo usermod -aG <groupname> <username>
+• Explanation: The usermod command modifies user settings. The -aG flag adds
+the user to a group without removing them from other groups.
+
+5. View User Info:
+• Command:
+id <username>
+• Explanation: Displays user and group information, including the UID (User ID) and GID (Group ID) of the user.
+
+6. Home Directory:
+• Command:
+sudo usermod -d /new/home/dir <username>
+• Explanation: Changes the home directory of the specified user to /new/home/dir.
+
+7. Password Files:
+• Command:
+cat /etc/passwd
+• Explanation: The /etc/passwd file contains basic information about users, such as their username, UID, GID, home directory, and default shell.
+
+8. PAM Configuration:
+• Command:
+cat /etc/pam.d/sshd
+• Explanation: Displays the configuration for PAM (Pluggable Authentication Modules) for SSH login. PAM manages authentication for various services in Linux.
+
+--------------------------------------------------------------------------------------------------
+Software Management
+------------------------------------------------------------------------------------------------
+1. Create a tar Archive:
+• Command:
+tar -cvf archive.tar /path/to/files
+• Explanation: Creates a tar archive from the files located in /path/to/files.
+The -c flag means "create," -v is for verbose output, and -f specifies the archive
+name.
+
+2. Extract a tar Archive:
+• Command:
+tar -xvf archive.tar
+• Explanation: Extracts the files from archive.tar. The -x flag means "extract."
+
+3. Install an RPM Package:
+• Command:
+sudo rpm -ivh package.rpm
+• Explanation: Installs a package using the RPM package manager. The -i flag is for
+install, -v for verbose, and -h shows progress in a human-readable format.
+
+4. Patch Files:
+• Command:
+patch < patchfile.patch
+• Explanation: The patch command applies the changes specified in
+patchfile.patch to the files.
+
+---------------------------------------------------------------------------------------
+Hardware Management
+------------------------------------------------------------------------------------
+1. List Block Devices:
+• Command
+lsblk
+• Explanation: lsblk lists all block devices (storage devices like hard drives, SSDs)
+in a tree format, showing partitions and their mount points.
+
+2. Display Information About Devices:
+• Command:
+lshw
+• Explanation: lshw displays detailed information about the hardware configuration
+of the machine, including CPU, memory, disks, and network interfaces. Run as sudo
+for full information.
+
+3. View All Devices (from /dev):
+• Command:
+ls /dev
+• Explanation: The /dev directory contains device files which represent the system's
+hardware, like disks (/dev/sda), network interfaces, and input devices.
+
+4. Check Device Status (using udev):
+• Command:
+udevadm info --query=all --name=/dev/sda
+• Explanation: udevadm provides information about devices managed by udev.
+This command checks detailed properties of the /dev/sda block device.
+
+5. Show Mounted Filesystems:
+• Command:
+df -h
+• Explanation: Displays the disk space usage of mounted filesystems in human-
+readable format (MB/GB). Useful for identifying the usage status of your disk
+partitions.
+
+6. Device Namespace (View Devices in the /dev Directory):
+• Command:
+ls -l /dev
+• Explanation: Lists all device files in the /dev directory, showing devices such as /
+dev/sda (hard disk), /dev/tty (terminals), and others.
+
+-----------------------------------------------------------------------------------------------
+Key Linux System Commands Related to Hardware
+----------------------------------------------------------------------------------------------
+1. Check CPU Information:
+• Command:
+lscpu
+• Explanation: Displays detailed information about the CPU, including the
+architecture, number of cores, threads, and clock speed.
+
+2. Check Memory Usage:
+• Command:
+free -h
+• Explanation: Shows the total, used, and free memory (RAM) on the system. The -h
+flag gives output in a human-readable format (MB/GB).
+
+3. Check Disk Usage:
+• Command:
+fdisk -l
+• Explanation: Lists the partitions and their details, including disk sizes, partition
+sizes, and the filesystem types on each partition.
+
+4. Show PCI Devices:
+• Command:
+lspci
+• Explanation: Lists all PCI devices connected to the system, such as network
+adapters, graphics cards, and other expansion cards.
+
+5. Show USB Devices:
+• Command:
+lsusb
+• Explanation: Displays information about USB buses and the devices connected to
+them.
+/dev Namespace Overview
+• The /dev directory contains special device files, allowing user-level software to interact
+with the system's hardware. Examples include:
+• /dev/sda: Represents the first hard disk.
+• /dev/tty: Represents terminal devices.
+• /dev/null: A pseudo-device that discards all data written to it (often used for output
+redirection in scripts).
+• Interacting with Devices:
+• You can use regular file commands (like cat, echo, etc.) to interact with devices in
+/dev.
+Example:
+echo "Test" > /dev/tty1
+• Explanation: Sends the text "Test" to the first terminal (/dev/tty1). You can use
+this to output to different terminals directly.
+
+---------------------------------------------------------------------------------------------
+Network Management
+---------------------------------------------------------------------------------------------
+1. Types of Network Devices:
+https://www.geeksforgeeks.org/network-devices-hub-repeater-bridge-switch-router-gateways/
+• Includes routers, switches, firewalls, etc.
+• No installation needed as this is a theoretical concept.
+
+2. Monitoring Network Devices:
+• Tools like Nagios, Zabbix, and Cacti can monitor network traffic, device health, etc.
+• Nagios Installation:
+sudo apt update
+sudo apt install -y wget build-essential libgd-dev libssl-dev libapache2-mod-php apache2 php unzip daemon
+sudo apt update
+sudo apt install -y apache2 php php-gd libgd-dev unzip build-essential libapache2-mod-php
+
+Step 2: Download & Install Nagios Core
+
+cd /usr/local/src
+sudo wget https://assets.nagios.com/downloads/nagioscore/releases/nagios-4.5.1.tar.gz
+sudo tar -xzf nagios-4.5.1.tar.gz
+cd nagios-4.5.1
+sudo ./configure --with-httpd-conf=/etc/apache2/sites-enabled
+sudo make all
+sudo make install-groups-users
+sudo usermod -aG nagios www-data
+sudo make install
+sudo make install-daemoninit
+sudo make install-commandmode
+sudo make install-config
+
+
+Step 3: Install and Configure Apache for Nagios
+
+sudo make install-webconf
+sudo a2enmod rewrite cgi
+sudo systemctl restart apache2
+
+Step 4: Create Nagios Admin User
+
+sudo htpasswd -c /usr/local/nagios/etc/htpasswd.users nagiosadmin
+Enter a password for nagiosadmin (used for web login)
+
+Step 5: Install Nagios Plugins
+
+cd /usr/local/src
+sudo wget https://nagios-plugins.org/download/nagios-plugins-2.3.3.tar.gz
+sudo tar -xzf nagios-plugins-2.3.3.tar.gz
+cd nagios-plugins-2.3.3
+sudo ./configure --with-nagios-user=nagios --with-nagios-group=nagios
+sudo make
+sudo make install
+
+Step 6: Start Nagios
+
+sudo systemctl enable nagios
+sudo systemctl start nagios
+
+Access Nagios Web Interface
+http://54.25.31.82/nagios
+
+
+3. Controlling Network Services:
+• Use systemctl to manage services:
+sudo systemctl start <service>
+sudo systemctl stop <service>
+sudo systemctl enable <service>
+
+4. xinetd:
+• xinetd is a daemon that manages internet-based services.
+xinetd (Extended Internet Services Daemon) is a super-server daemon that manages network services (like FTP, Telnet, and SSH) and controls access based on IP, time, and load. It replaces the older inetd
+• Installation:
+sudo apt update
+sudo apt install xinetd
+
+5. iptables:
+• A firewall utility to manage incoming and outgoing traffic.
+• Installation (though usually pre-installed on most systems):
+iptables: Linux Firewall Management
+iptables is a command-line firewall utility in Linux that controls incoming and outgoing network traffic using rules defined by the user.
+
+sudo apt update
+sudo apt install iptables
+1️) Check Current iptables Rules
+sudo iptables -L -v -n
+-L → List rules
+-v → Show detailed information
+-n → Display IPs instead of resolving hostnames
+2️)Basic iptables Commands
+Allow Specific Traffic
+✅ Allow SSH (port 22)
+sudo iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+✅ Allow HTTP & HTTPS (ports 80, 443)
+sudo iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+sudo iptables -A INPUT -p tcp --dport 443 -j ACCEPT
+✅ Allow a Specific IP (192.168.1.100)
+sudo iptables -A INPUT -s 192.168.1.100 -j ACCEPT
+✅ Allow a Network Range (192.168.1.0/24)
+sudo iptables -A INPUT -s 192.168.1.0/24 -j ACCEPT
+3️)Block Traffic
+🚫 Block an IP (e.g., 192.168.1.200)
+sudo iptables -A INPUT -s 192.168.1.200 -j DROP
+🚫 Block All Incoming Connections Except Allowed
+sudo iptables -P INPUT DROP
+4️) Delete a Rule
+To delete a specific rule:
+sudo iptables -D INPUT -s 192.168.1.200 -j DROP
+To delete all rules:
+sudo iptables -F
+
+
+---------------------------------------------------------------------------------------------
+Network Services – Part I
+--------------------------------------------------------------------------------------------------
+1. DHCP (Dynamic Host Configuration Protocol):
+• Assigns IP addresses to network devices.
+• Installation:
+sudo apt update
+sudo apt install isc-dhcp-server -y
+cd /etc/dhcp
+sudo nano dhcpd.conf 
+sudo systemctl stop isc-dhcp-server
+sudo systemctl start isc-dhcp-server
+
+client:
+ifconfig
+
+2. DNS (Domain Name System):
+• Resolves domain names to IP addresses.
+• BIND DNS Server Installation:
+sudo apt update
+sudo apt install bind9
+
+3. SSH (Secure Shell):
+• Remote access protocol for secure communications.
+• Installation:
+sudo apt update
+sudo apt install openssh-server
+
+----------------------------------------------------------------------------------------------------
+Network Services – Part II
+----------------------------------------------------------------------------------------------------
+1. FTP (File Transfer Protocol):
+• Used for transferring files between systems.
+• vsftpd Installation:
+sudo apt update
+sudo apt install vsftpd ftp ufw -y
+systemctl status vsftpd
+sudo systemctl enable vsftpd
+sudo systemctl start vsftpd
+sudo useradd -m ftpuser
+sudo passwd ftpuser
+sudo -u ftpuser sh -c 'echo "this is message.">/home/ftpuser/lopi.txt'
+ftp localhost
+ls /home/ftpuser
+
+
+2. NFS (Network File System):
+• Shares files between systems over a network.
+• Installation:
+Steps:
+NFS Server Configuration (on 52.90.108.58)
+Update package list and install NFS server:
+apt update
+apt -y install nfs-kernel-server
+
+Verify NFS service is running:
+systemctl status nfs-server
+
+If it's not running, start and enable it:
+sudo systemctl enable --now nfs-server
+
+Create directories for NFS exports:
+mkdir -p /exports/backups
+
+Configure the export in /etc/exports:
+vi /etc/exports
+
+Add this line:
+/exports/backups 52.90.108.58(rw,sync,no_subtree_check)
+Potential Fix:
+The IP 52.90.108.58 appears to be the same as the server's own IP. If you're sharing with a client, replace it with the client's IP (e.g., 18.204.21.231).
+
+Apply export changes
+exportfs -ar
+exportfs -v
+
+Allow NFS traffic in the firewall:
+ufw allow from 18.204.21.231 to any port nfs
+
+NFS Client Configuration (on 18.204.21.231)
+Install NFS client utilities
+apt -y install nfs-common
+
+Create a mount point:
+mkdir -p /mnt/backups
+
+Mount the NFS share manually:
+mount 52.90.108.58:/exports/backups /mnt/backups
+
+Check if it's mounted:
+df -h | grep backups
+
+Persist the mount in /etc/fstab
+vi /etc/fstab
+
+Add the following line:
+52.90.108.58:/exports/backups /mnt/backups nfs auto,nofail,noatime,nolock,tcp,actimeo=1800,_netdev 0 0
+
+Reload fstab and test persistent mount
+sudo mount -a
+
+3. Samba:
+• Allows file sharing between Linux and Windows.
+• Installation:
+sudo apt update
+sudo apt install samba -y
+sudo adduser sambauser
+sudo smbpasswd -a sambauser
+sudo su
+cd  ..
+cd sambauser
+mkdir shared_folder
+ls -l
+chown sambauser shared_folder
+chgrp sambhauser shared_folder
+cd /etc/samba/
+cp smb.conf smb.conf.bk
+nano smb.conf
+
+[shared_folder]
+	path=/home/sambauser/shared_folder
+	readonly = no
+	inherit permission = yes
+service smbd restart
+
+client:
+apt install smbclient
+smbclient //18.204.21.231/shared_folder -U sambauser
+
+Which One to Use?
+Use Samba if you need Windows-Linux file sharing.
+Use FTP if you need to upload/download files over the internet.
+Use NFS if you need fast file sharing between Linux/Unix systems.
+----------------------------------------------------------------------------------------------------------
+Network Services – Part III
+----------------------------------------------------------------------------------------------------------
+1. Sendmail:
+• A mail transfer agent (MTA) to route and deliver email.
+Sendmail is a Mail Transfer Agent (MTA) used for sending emails between systems using the SMTP (Simple Mail Transfer Protocol). It is one of the oldest and most widely used MTAs on Unix/Linux systems.
+
+Features of Sendmail:
+Supports SMTP for email transmission.
+Can route emails between local and remote mail servers.
+Highly configurable (but complex to set up).
+Supports aliases, forwarding, and mailing lists.
+Works with other mail-related services like Dovecot/Postfix.
+
+• Installation:
+sudo apt update
+sudo apt install sendmail
+sudo systemctl restart sendmail
+echo "Test Email Body" | sendmail xayif65341@oziere.com
+sudo tail -f /var/log/mail.log
+sudo head /var/log/mail.log
+
+
+https://stackoverflow.com/questions/57410259/how-to-send-an-email-using-sendmail-command-in-linux
+
+2. Apache:
+• A widely used web server.
+• Installation:
+sudo apt update
+sudo apt install apache2
+
+3. Squid Proxy Server:
+• A proxy caching server for web requests.
+• Installation:
+sudo apt update
+sudo apt install squid -y
+sudo nano /etc/squid/squid.conf 
+sudo nano /etc/squid/blocksite
+sudo systemctl restart squid
+
+configuration file:
+
+acl localnet src 54.211.14.49
+acl blocksite dstdomain "/etc/squid/blocksite"
+http_access deny blocksite
+http_access allow localnet
+
+https://phoenixnap.com/kb/setup-install-squid-proxy-server-ubuntu
+---------------------------------------------------------------------------
+The X Window System
+
+https://vsys.host/how-to/how-to-install-a-desktop-gui-on-an-ubuntu-server
+https://shrihariharidas73.medium.com/how-to-setup-gui-desktop-with-ubuntu-on-aws-ec2-ea713d836a58
+----------------------------------------------------------------------------
+1. X Servers and X Clients:
+• X Server provides graphical display capabilities. X Client applications interact with
+it.
+• Installation:
+sudo apt install xorg
+
+2. XFree86:
+• An older implementation of the X Window System.
+• Modern systems use X.org instead.
+
+3. X Fonts:
+• Fonts used by the X Window System.
+• Installation:
+sudo apt install xfonts-base
+
+4. GTK and KDE:
+• GTK is a toolkit for creating graphical user interfaces.
+• KDE is a desktop environment built on Qt.
+• Installation (for KDE):
+sudo apt install kde-plasma-desktop
+Installation Challenges
+• These are practical tasks involving installing and configuring Linux services.
+----------------------------------------------------------------------------------
+homework:
+• Setting up ftp
+• Configuring Apache to host a website.
